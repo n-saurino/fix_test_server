@@ -1,0 +1,21 @@
+version: "3.8"
+services:
+  fix-server:
+    image: fix-server
+    build: .
+    container_name: fix-server
+    networks:
+      - FIXNET
+    ports:
+      - "5001:5001"
+    restart: always
+    volumes:
+      - ./config:/app/config
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+
+networks:
+  FIXNET:
+    external: true

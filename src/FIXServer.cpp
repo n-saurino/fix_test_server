@@ -1,63 +1,81 @@
-#include "quickfix/Application.h"
-#include "quickfix/MessageCracker.h"
-#include "quickfix/Session.h"
-#include "quickfix/SessionSettings.h"
-#include "quickfix/SocketAcceptor.h"
-#include "quickfix/fix44/NewOrderSingle.h"
+#ifdef _MSC_VER
+#pragma warning(disable : 4503 4355 4786)
+#endif
+
+#include "quickfix/config.h"
+
 #include "quickfix/FileStore.h"
+#include "quickfix/SocketAcceptor.h"
+#ifdef HAVE_SSL
+#include "quickfix/SSLSocketAcceptor.h"
+#include "quickfix/ThreadedSSLSocketAcceptor.h"
+#endif
+#include "Application.hpp"
 #include "quickfix/Log.h"
-#include "NewOrderSingle.h"
-#include "MessageHeader.h"
+#include "quickfix/SessionSettings.h"
 
-class FixServer : public FIX::Application, public FIX::MessageCracker
+#include <fstream>
+#include <iostream>
+#include <memory>
+#include <string>
+
+void wait()
 {
-public:
-  void onCreate(const FIX::SessionID &) override {}
-  void onLogon(const FIX::SessionID &) override {}
-  void onLogout(const FIX::SessionID &) override {}
-  void toAdmin(FIX::Message &, const FIX::SessionID &) override {}
-  void toApp(FIX::Message &, const FIX::SessionID &) override
-      EXCEPT(FIX::DoNotSend) {}
-  void fromAdmin(const FIX::Message &, const FIX::SessionID &)
-      override EXCEPT(FIX::FieldNotFound, FIX::IncorrectDataFormat,
-                      FIX::IncorrectTagValue, FIX::RejectLogon) {}
-  void fromApp(const FIX::Message &message, const FIX::SessionID &sessionID)
-      override EXCEPT(FIX::FieldNotFound, FIX::IncorrectDataFormat,
-                      FIX::IncorrectTagValue, FIX::UnsupportedMessageType)
+  std::cout << "Type Ctrl-C to quit" << std::endl;
+  while (true)
   {
-    crack(message, sessionID);
+    FIX::process_sleep(1);
   }
+}
 
-  void onMessage(const FIX44::NewOrderSingle &message,
-                 const FIX::SessionID &sessionID) override
+int main(int argc, char **argv)
+{
+  if (argc < 2)
   {
-    std::cout << "Received NewOrderSingle: " << message << std::endl;
-
-    // Create and send an SBE response message
-    char buffer[1024];
-    sbe::MessageHeader hdr;
-    sbe::NewOrderSingle order;
-
-    hdr.wrap(buffer, 0, 0, sizeof(buffer))
-        .blockLength(order.sbeBlockLength())
-        .templateId(order.sbeTemplateId())
-        .schemaId(order.sbeSchemaId())
-        .version(order.sbeSchemaVersion());
-
-    order.wrapForEncode(buffer, hdr.encodedLength(), sizeof(buffer))
-        .clOrdId(12345)
-        .account(67890)
-        .symbol(112233)
-        .side(sbe::SideEnum::Buy)
-        .transactTime(1617181920)
-        .orderQty()
-        .mantissa(100);
-
-    order.price()
-        .mantissa(10050);
-
-    FIX::Message fixMessage;
-    fixMessage.setField(FIX::FIELD::RawData, std::string(buffer, hdr.encodedLength() + order.encodedLength()));
-    FIX::Session::sendToTarget(fixMessage, sessionID);
+    std::cout << "usage: " << argv[0] << " FILE." << std::endl;
+    return 0;
   }
-};
+  std::string file = argv[1];
+#ifdef HAVE_SSL
+  std::string isSSL;
+  if (argc > 2)
+  {
+    isSSL.assign(argv[2]);
+  }
+#endif
+
+  try
+  {
+    FIX::SessionSettings settings(file);
+
+    Application application;
+    FIX::FileStoreFactory storeFactory(settings);
+    FIX::ScreenLogFactory logFactory(settings);
+
+    std::unique_ptr<FIX::Acceptor> acceptor;
+#ifdef HAVE_SSL
+    if (isSSL.compare("SSL") == 0)
+    {
+      acceptor = std::unique_ptr<FIX::Acceptor>(
+          new FIX::ThreadedSSLSocketAcceptor(application, storeFactory, settings, logFactory));
+    }
+    else if (isSSL.compare("SSL-ST") == 0)
+    {
+      acceptor = std::unique_ptr<FIX::Acceptor>(new FIX::SSLSocketAcceptor(application, storeFactory, settings, logFactory));
+    }
+    else
+#endif
+      acceptor = std::unique_ptr<FIX::Acceptor>(new FIX::SocketAcceptor(application, storeFactory, settings, logFactory));
+
+    acceptor->start();
+    wait();
+    acceptor->stop();
+
+    return 0;
+  }
+  catch (std::exception &e)
+  {
+    std::cout << e.what() << std::endl;
+    return 1;
+  }
+}

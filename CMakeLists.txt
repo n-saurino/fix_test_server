@@ -12,13 +12,16 @@ file(GLOB SOURCES "src/*.cpp")
 add_executable(FIXServer ${SOURCES})
 
 # Include directories
-target_include_directories(FIXServer PRIVATE "${CMAKE_SOURCE_DIR}/src" "${CMAKE_SOURCE_DIR}/generated/sbe" "${CMAKE_SOURCE_DIR}/include")
+target_include_directories(FIXServer PRIVATE "${CMAKE_SOURCE_DIR}/src" "${CMAKE_SOURCE_DIR}/generated/sbe" "${CMAKE_SOURCE_DIR}/include" "${CMAKE_SOURCE_DIR}/deps/quickfix/src/C++")
 
 # Find QuickFIX library
 find_library(QUICKFIX_LIBRARY quickfix REQUIRED)
 
 # Link QuickFIX to the server
 target_link_libraries(FIXServer PRIVATE ${QUICKFIX_LIBRARY})
+
+# Link QuickFIX to the server
+# target_link_libraries(FIXServer PRIVATE "${CMAKE_SOURCE_DIR}/deps/quickfix/libquickfix.so")
 
 # Set output directory for binaries
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)

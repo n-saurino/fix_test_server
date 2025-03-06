@@ -15,7 +15,12 @@
 #include "quickfix/fix50/ExecutionReport.h"
 
 void Application::onCreate(const FIX::SessionID &sessionID) {}
-void Application::onLogon(const FIX::SessionID &sessionID) {}
+
+void Application::onLogon(const FIX::SessionID &sessionID)
+{
+  std::cout << "Received Log on message from client" << "\n";
+}
+
 void Application::onLogout(const FIX::SessionID &sessionID) {}
 void Application::toAdmin(FIX::Message &message, const FIX::SessionID &sessionID) {}
 void Application::toApp(FIX::Message &message, const FIX::SessionID &sessionID) EXCEPT(FIX::DoNotSend) {}

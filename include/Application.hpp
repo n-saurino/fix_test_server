@@ -7,12 +7,9 @@
 #include "quickfix/Utility.h"
 #include "quickfix/Values.h"
 
-#include "quickfix/fix40/NewOrderSingle.h"
-#include "quickfix/fix41/NewOrderSingle.h"
-#include "quickfix/fix42/NewOrderSingle.h"
-#include "quickfix/fix43/NewOrderSingle.h"
 #include "quickfix/fix44/NewOrderSingle.h"
-#include "quickfix/fix50/NewOrderSingle.h"
+#include "quickfix/fix44/OrderCancelRequest.h"
+#include "quickfix/fix44/OrderCancelReplaceRequest.h"
 
 class Application : public FIX::Application, public FIX::MessageCracker
 {
@@ -33,13 +30,9 @@ public:
       EXCEPT(FIX::FieldNotFound, FIX::IncorrectDataFormat, FIX::IncorrectTagValue, FIX::UnsupportedMessageType);
 
   // MessageCracker overloads
-  void onMessage(const FIX40::NewOrderSingle &, const FIX::SessionID &);
-  void onMessage(const FIX41::NewOrderSingle &, const FIX::SessionID &);
-  void onMessage(const FIX42::NewOrderSingle &, const FIX::SessionID &);
-  void onMessage(const FIX43::NewOrderSingle &, const FIX::SessionID &);
   void onMessage(const FIX44::NewOrderSingle &, const FIX::SessionID &);
-  void onMessage(const FIX50::NewOrderSingle &, const FIX::SessionID &);
-
+  void onMessage(const FIX44::OrderCancelRequest&, const FIX::SessionID &);
+  void onMessage(const FIX44::OrderCancelReplaceRequest&, const FIX::SessionID &);
   std::string genOrderID() { return std::to_string(++m_orderID); }
   std::string genExecID() { return std::to_string(++m_execID); }
 

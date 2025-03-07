@@ -65,4 +65,6 @@ EXPOSE 5001
 RUN chmod +x /app/build/FIXServer
 
 # Run the server
-CMD ["./FIXServer", "/app/config/acceptor.cfg"]
+# Uncomment when you are ready to run deploy the server without edits
+# CMD ["./FIXServer", "/app/config/acceptor.cfg"]
+CMD ["/bin/bash"]

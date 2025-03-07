@@ -8,6 +8,8 @@ services:
       - FIXNET
     ports:
       - "5001:5001"
+    stdin_open: true  # Keeps container interactive
+    tty: true  # Prevents container from exiting
     restart: always
     volumes:
       - ./config:/app/config

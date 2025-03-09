@@ -94,28 +94,6 @@ void Application::onMessage(const FIX44::OrderCancelRequest &message, const FIX:
   message.get(side);
   message.get(account);
 
-  // FIX42::ExecutionReport fixOrder(
-  //   FIX::OrderID(order.getClientID()),
-  //   FIX::ExecID(m_generator.genExecutionID()),
-  //   FIX::ExecTransType(FIX::ExecTransType_NEW),
-  //   FIX::ExecType(status),
-  //   FIX::OrdStatus(status),
-  //   FIX::Symbol(order.getSymbol()),
-  //   FIX::Side(convert(order.getSide())),
-  //   FIX::LeavesQty(order.getOpenQuantity()),
-  //   FIX::CumQty(order.getExecutedQuantity()),
-  //   FIX::AvgPx(order.getAvgExecutedPrice()));
-
-  //   ExecutionReport(
-  //     const FIX::OrderID& aOrderID,
-  //     const FIX::ExecID& aExecID,
-  //     const FIX::ExecType& aExecType,
-  //     const FIX::OrdStatus& aOrdStatus,
-  //     const FIX::Side& aSide,
-  //     const FIX::LeavesQty& aLeavesQty,
-  //     const FIX::CumQty& aCumQty,
-  //     const FIX::AvgPx& aAvgPx )
-
   FIX44::ExecutionReport executionReport = FIX44::ExecutionReport(
       FIX::OrderID(genOrderID()),
       FIX::ExecID(genExecID()),
